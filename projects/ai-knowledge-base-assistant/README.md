@@ -1,4 +1,4 @@
-# AI Knowledge Base Chatbot (n8n + AI)
+# AI-Powered Knowledge Base Assistant (n8n + AI Tagging + Retrieval)
 
 ## Overview
 
