@@ -1,0 +1,144 @@
+{
+  "name": "Daily Digest email",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "74a02959-9fc1-406f-9e52-d0ed25c7eacb",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SPREADSHEET_ID",
+          "mode": "list",
+          "cachedResultName": "AI Job Tracker",
+          "cachedResultUrl": "YOUR_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Jobs",
+          "cachedResultUrl": "YOUR_SPREADSHEET_ID"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "468e6d20-0abe-473f-bb79-2ddd6101fb5a",
+      "name": "Get New Jobs",
+      "credentials": {
+        "googleApi": {
+          "id": "fCl0D6hjrPcyLy0e",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const jobs = $input.all();\n\nif (jobs.length === 0) {\n  return [{ json: {\n    subject: \"Daily Job Digest - No new matches today\",\n    body: \"<p>No new high-scoring jobs found today. The tracker is still running!</p>\"\n  }}];\n}\n\nlet html = `\n<h2>Your Daily Job Matches — ${new Date().toDateString()}</h2>\n<p>Found <strong>${jobs.length} new matches</strong> today</p>\n<hr/>\n`;\n\nfor (const job of jobs) {\n  html += `\n  <div style=\"margin-bottom:24px; padding:16px; border-left:4px solid #0077b5;\">\n    <h3>${job.json['Job Title']}</h3>\n    <p>${job.json['Company']} — ${job.json['Location']}</p>\n    <p><strong>Fit Score: ${job.json['Fit Score']}/10</strong></p>\n    <p>${job.json['Score Reason']}</p>\n    <p><em>${job.json['Outreach Draft']}</em></p>\n    <a href=\"${job.json['URL']}\">View Job →</a>\n  </div><hr/>\n  `;\n}\n\nhtml += `<p style=\"color:#999;font-size:12px;\">Powered by your AI Job Tracker · Built with n8n + Claude AI</p>`;\n\nreturn [{ json: {\n  subject: `Daily Job Digest - ${jobs.length} new matches`,\n  body: html\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "09d1169a-cfde-4583-8a7d-da3f759e5fa1",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "fromEmail": "YOUR_GMAIL_ADDRESS",
+        "toEmail": "YOUR_GMAIL_ADDRESS",
+        "subject": "={{ $json.subject }}",
+        "html": "={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        624,
+        0
+      ],
+      "id": "a71839f4-4592-4e7c-bfe7-b265ac2362f1",
+      "name": "Send an Email",
+      "webhookId": "36bef626-c825-4557-bd59-6698b328e6d3",
+      "credentials": {
+        "smtp": {
+          "id": "xJMB4FJm3IyW5Sz2",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get New Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get New Jobs": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "dcdcaabc-923d-467f-b711-1cb988061c76",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "84e8cd22e11c518065bf7c63662123f6644e123fa15dce89aff2dbc3334a78b3"
+  },
+  "nodeGroups": [],
+  "id": "pzkVanD79UeO4m63",
+  "tags": []
+}
